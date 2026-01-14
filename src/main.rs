@@ -4,6 +4,7 @@ use axum::{
     routing::post,
     Router,
 };
+use hyper::Server;
 use serde::Deserialize;
 use std::{env, net::SocketAddr};
 use tiberius::{AuthMethod, Client, Config};
@@ -19,14 +20,14 @@ struct CaptchaForm {
 
 #[tokio::main]
 async fn main() {
-    // ──────────────── AXUM ROUTER ────────────────
+    // ───────────── ROUTER ─────────────
     let app = Router::new()
         .route("/submit", post(handle_submit))
         .nest_service("/", ServeDir::new("static"));
 
-    // ──────────────── RAILWAY PORT (OBLIGATORIO) ────────────────
+    // ───────────── RAILWAY PORT ─────────────
     let port: u16 = env::var("PORT")
-        .expect("La variable PORT no está definida")
+        .expect("PORT no definido")
         .parse()
         .expect("PORT inválido");
 
@@ -34,22 +35,22 @@ async fn main() {
 
     println!("🚀 Servidor corriendo en http://0.0.0.0:{port}");
 
-    // ──────────────── START SERVER ────────────────
-    axum::Server::bind(&addr)
+    // ───────────── SERVER (AXUM 0.7) ─────────────
+    Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
 }
 
-// ──────────────── HANDLER ────────────────
+// ───────────── HANDLER ─────────────
 async fn handle_submit(Form(data): Form<CaptchaForm>) -> Html<String> {
     match save_token(&data.token).await {
         Ok(_) => Html("<h1>Captcha guardado correctamente ✅</h1>".to_string()),
-        Err(e) => Html(format!("<h1>Error al guardar: {}</h1>", e)),
+        Err(e) => Html(format!("<h1>Error: {}</h1>", e)),
     }
 }
 
-// ──────────────── SQL SERVER ────────────────
+// ───────────── SQL SERVER (SOMEE) ─────────────
 async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = Config::new();
 
@@ -60,7 +61,7 @@ async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
         "ecm87pr46l",
     ));
     config.database("captcha_db");
-    config.trust_cert(); // NECESARIO PARA SOMEE
+    config.trust_cert();
 
     let tcp = TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
     tcp.set_nodelay(true)?;
