@@ -24,7 +24,7 @@ async fn main() {
         .route("/submit", post(handle_submit))
         .nest_service("/", ServeDir::new("static"));
 
-    // ───────────── RAILWAY PORT ─────────────
+    // ───────────── PORT (Railway) ─────────────
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse()
@@ -34,12 +34,11 @@ async fn main() {
 
     println!("🚀 Servidor corriendo en http://0.0.0.0:{port}");
 
-    // ───────────── AXUM 0.7 SERVER ─────────────
+    // ───────────── AXUM SERVER (0.7) ─────────────
     let listener = TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-// ───────────── HANDLER ─────────────
 async fn handle_submit(Form(data): Form<CaptchaForm>) -> Html<String> {
     match save_token(&data.token).await {
         Ok(_) => Html("<h1>Captcha guardado correctamente ✅</h1>".to_string()),
@@ -47,7 +46,6 @@ async fn handle_submit(Form(data): Form<CaptchaForm>) -> Html<String> {
     }
 }
 
-// ───────────── SQL SERVER (SOMEE) ─────────────
 async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = Config::new();
 
@@ -58,9 +56,17 @@ async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
         "ecm87pr46l",
     ));
     config.database("captcha_db");
-    config.trust_cert(); // IMPORTANTE para SOMEe
+    config.trust_cert(); // necesario para SOMEe
 
     let tcp = tokio::net::TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
     let mut client = Client::connect(config, tcp.compat_write()).await?;
 
-    cl
+    client
+        .execute(
+            "INSERT INTO captcha_logs (token) VALUES (@P1)",
+            &[&token],
+        )
+        .await?;
+
+    Ok(())
+}
