@@ -38,13 +38,17 @@ async fn handle_submit(Form(data): Form<CaptchaForm>) -> Html<String> {
 
 async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = Config::new();
-    config.host("localhost");
-    config.port(1433);
-    config.authentication(tiberius::AuthMethod::sql_server("sa", "1234"));
-    config.database("captcha_db");
-    config.trust_cert();
 
-    let tcp = tokio::net::TcpStream::connect("localhost:1433").await?;
+    config.host("captcha_db.mssql.somee.com");
+    config.port(1433);
+    config.authentication(tiberius::AuthMethod::sql_server(
+        "CesarLT04_SQLLogin_1",
+        "ecm87pr46l",
+    ));
+    config.database("captcha_db");
+    config.trust_cert(); // necesario para conexiones remotas (SOMEe)
+
+    let tcp = tokio::net::TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
     let mut client = Client::connect(config, tcp.compat_write()).await?;
 
     client
