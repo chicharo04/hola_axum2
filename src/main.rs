@@ -4,11 +4,10 @@ use axum::{
     routing::post,
     Router,
 };
-use hyper::Server;
 use serde::Deserialize;
 use std::{env, net::SocketAddr};
 use tiberius::{AuthMethod, Client, Config};
-use tokio::net::TcpStream;
+use tokio::net::TcpListener;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 use tower_http::services::ServeDir;
 
@@ -27,7 +26,7 @@ async fn main() {
 
     // ───────────── RAILWAY PORT ─────────────
     let port: u16 = env::var("PORT")
-        .expect("PORT no definido")
+        .unwrap_or_else(|_| "8080".to_string())
         .parse()
         .expect("PORT inválido");
 
@@ -35,11 +34,9 @@ async fn main() {
 
     println!("🚀 Servidor corriendo en http://0.0.0.0:{port}");
 
-    // ───────────── SERVER (AXUM 0.7) ─────────────
-    Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    // ───────────── AXUM 0.7 SERVER ─────────────
+    let listener = TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
 // ───────────── HANDLER ─────────────
@@ -61,19 +58,9 @@ async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
         "ecm87pr46l",
     ));
     config.database("captcha_db");
-    config.trust_cert();
+    config.trust_cert(); // IMPORTANTE para SOMEe
 
-    let tcp = TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
-    tcp.set_nodelay(true)?;
-
+    let tcp = tokio::net::TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
     let mut client = Client::connect(config, tcp.compat_write()).await?;
 
-    client
-        .execute(
-            "INSERT INTO captcha_logs (token) VALUES (@P1)",
-            &[&token],
-        )
-        .await?;
-
-    Ok(())
-}
+    cl
