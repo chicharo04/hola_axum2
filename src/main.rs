@@ -39,12 +39,11 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn handle_submit(Form(data): Form<CaptchaForm>) -> Html<String> {
-    match save_token(&data.token).await {
-        Ok(_) => Html("<h1>Captcha guardado correctamente ✅</h1>".to_string()),
-        Err(e) => Html(format!("<h1>Error: {}</h1>", e)),
-    }
+async fn handle_submit(Form(_data): Form<CaptchaForm>) -> Html<String> {
+    Html("<h1>Servidor vivo en Railway ✅</h1>".to_string())
 }
+
+
 
 async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = Config::new();
