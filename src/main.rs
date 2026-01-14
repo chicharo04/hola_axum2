@@ -5,6 +5,8 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
+use std::env;
+use std::net::SocketAddr;
 use tiberius::{Client, Config};
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 use tower_http::services::ServeDir;
@@ -21,7 +23,13 @@ async fn main() {
         .route("/submit", post(handle_submit))
         .nest_service("/", ServeDir::new("static"));
 
-    let addr = "127.0.0.1:3000";
+    // Railway usa esta variable
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse()
+        .unwrap();
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
     println!("Servidor corriendo en http://{}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
@@ -46,7 +54,7 @@ async fn save_token(token: &str) -> Result<(), Box<dyn std::error::Error>> {
         "ecm87pr46l",
     ));
     config.database("captcha_db");
-    config.trust_cert(); // necesario para conexiones remotas (SOMEe)
+    config.trust_cert(); // necesario para SOMEe
 
     let tcp = tokio::net::TcpStream::connect("captcha_db.mssql.somee.com:1433").await?;
     let mut client = Client::connect(config, tcp.compat_write()).await?;
