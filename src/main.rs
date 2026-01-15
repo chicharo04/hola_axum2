@@ -7,7 +7,10 @@ use axum::{
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::{env, net::SocketAddr};
-use tower_http::{cors::CorsLayer, services::ServeDir};
+use tower_http::{
+    cors::CorsLayer,
+    services::ServeDir,
+};
 
 #[derive(Deserialize)]
 struct FormData {
@@ -23,6 +26,7 @@ async fn main() {
 
     let database_url =
         env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+
     let pool = PgPool::connect(&database_url)
         .await
         .expect("Error conectando a Postgres");
@@ -62,6 +66,7 @@ async fn enviar(
     .execute(&pool)
     .await;
 
+    Html("✅ Mensaje enviado correctamente");
     Html("✅ Mensaje enviado correctamente")
 }
 
