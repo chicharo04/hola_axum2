@@ -2,18 +2,24 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>reCAPTCHA Axum</title>
+    <title>Axum + PostgreSQL en Railway</title>
+
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
-    <h1>Formulario con reCAPTCHA</h1>
+<h1>Axum + PostgreSQL en Railway</h1>
 
-    <form method="POST" action="/submit">
-        <div class="g-recaptcha" data-sitekey="6Ldc2EQsAAAAAOvllrQWPbKtdmRWnfX88kPUFPhf"></div>
-        <br>
-        <button type="submit">Enviar</button>
-    </form>
+<form action="/enviar" method="post">
+    <input type="text" name="nombre" placeholder="Nombre" required><br><br>
+
+    <textarea name="mensaje" placeholder="Mensaje" required></textarea><br><br>
+
+    <!-- 👇 PEGA TU SITE KEY AQUÍ -->
+    <div class="g-recaptcha" data-sitekey="6LdX-EosAAAAAJSX--JKGhSkNaQDOWckW5mb3Z30"></div><br>
+
+    <button type="submit">Enviar</button>
+</form>
 
 </body>
 </html>
