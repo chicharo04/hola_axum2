@@ -7,10 +7,7 @@ use axum::{
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::{env, net::SocketAddr};
-use tower_http::{
-    cors::CorsLayer,
-    services::ServeDir,
-};
+use tower_http::{cors::CorsLayer, services::ServeDir};
 
 #[derive(Deserialize)]
 struct FormData {
@@ -54,6 +51,10 @@ async fn enviar(
     State(pool): State<PgPool>,
     Form(form): Form<FormData>,
 ) -> Html<&'static str> {
+    if form.recaptcha.is_empty() {
+        return Html("❌ Debes completar el reCAPTCHA");
+    }
+
     if !verify_recaptcha(&form.recaptcha).await {
         return Html("❌ reCAPTCHA inválido");
     }
@@ -66,13 +67,12 @@ async fn enviar(
     .execute(&pool)
     .await;
 
-    Html("✅ Mensaje enviado correctamente");
     Html("✅ Mensaje enviado correctamente")
 }
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret =
-        env::var("RECAPTCHA_SECRET_KEY").unwrap();
+    let secret = env::var("RECAPTCHA_SECRET")
+        .expect("RECAPTCHA_SECRET no encontrada");
 
     let client = reqwest::Client::new();
     let res = client
