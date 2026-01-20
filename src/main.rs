@@ -5,10 +5,10 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
-use sqlx::PgPool;
-use std::{env, fs, net::SocketAddr};
+use sqlx::{PgPool, Row};
+use std::{env, net::SocketAddr};
 use tower_http::{cors::CorsLayer, services::ServeDir};
-use uuid::Uuid;
+
 
 #[derive(Deserialize)]
 struct FormData {
@@ -76,29 +76,31 @@ async fn enviar(
 async fn upload_image(
     State(pool): State<PgPool>,
     mut multipart: Multipart,
-) -> impl IntoResponse {
-    fs::create_dir_all("uploads").ok();
+) -> Html<&'static str> {
+    use tokio::io::AsyncWriteExt;
 
-    while let Ok(Some(field)) = multipart.next_field().await {
+    tokio::fs::create_dir_all("uploads").await.unwrap();
+
+    while let Some(field) = multipart.next_field().await.unwrap() {
         if field.name() == Some("image") {
+            let filename = field.file_name().unwrap().to_string();
             let data = field.bytes().await.unwrap();
-            let filename = format!("{}.jpg", Uuid::new_v4());
-            let path = format!("uploads/{}", filename);
 
-            fs::write(&path, data).unwrap();
+            let path = format!("uploads/{}", filename);
+            let mut file = tokio::fs::File::create(&path).await.unwrap();
+            file.write_all(&data).await.unwrap();
 
             sqlx::query("INSERT INTO images (filename) VALUES ($1)")
                 .bind(&filename)
                 .execute(&pool)
                 .await
                 .unwrap();
-
-            return Html("✅ Imagen subida");
         }
     }
 
-    Html("❌ Error")
+    Html("✅ Imagen subida correctamente")
 }
+
 
 async fn list_images(
     State(pool): State<PgPool>,
@@ -110,11 +112,15 @@ async fn list_images(
 
     let images: Vec<String> = rows
         .into_iter()
-        .map(|r| format!("/uploads/{}", r.filename))
+        .map(|row| {
+            let filename: String = row.get("filename");
+            format!("/uploads/{}", filename)
+        })
         .collect();
 
     axum::Json(images)
 }
+
 
 /* ---------------- reCAPTCHA ---------------- */
 
