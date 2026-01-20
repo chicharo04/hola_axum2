@@ -19,24 +19,14 @@ struct FormData {
 
 #[tokio::main]
 async fn main() {
-    // En Railway no hace daño, local sí ayuda
     dotenvy::dotenv().ok();
 
-    let database_url = match env::var("DATABASE_URL") {
-        Ok(v) => v,
-        Err(_) => {
-            eprintln!("❌ DATABASE_URL no encontrada");
-            std::process::exit(1);
-        }
-    };
+    let database_url =
+        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
 
-    let pool = match PgPool::connect(&database_url).await {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("❌ Error conectando a Postgres: {:?}", e);
-            std::process::exit(1);
-        }
-    };
+    let pool = PgPool::connect(&database_url)
+        .await
+        .expect("Error conectando a Postgres");
 
     let app = Router::new()
         .nest_service("/", ServeDir::new("static"))
@@ -47,14 +37,12 @@ async fn main() {
     let port = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse::<u16>()
-        .unwrap_or(3000);
+        .unwrap();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .expect("No se pudo bindear el puerto");
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-    println!("🚀 Servidor corriendo en {}", addr);
+    println!("Servidor corriendo en {}", addr);
 
     axum::serve(listener, app).await.unwrap();
 }
@@ -71,32 +59,28 @@ async fn enviar(
         return Html("❌ reCAPTCHA inválido");
     }
 
-    if let Err(e) = sqlx::query(
+    let result = sqlx::query(
         "INSERT INTO mensajes (nombre, mensaje) VALUES ($1, $2)",
     )
     .bind(&form.nombre)
     .bind(&form.mensaje)
     .execute(&pool)
-    .await
-    {
-        eprintln!("❌ Error insertando mensaje: {:?}", e);
-        return Html("❌ Error guardando el mensaje");
-    }
+    .await;
 
-    Html("✅ Mensaje enviado correctamente")
+    match result {
+        Ok(_) => Html("✅ Mensaje enviado correctamente"),
+        Err(e) => {
+            eprintln!("Error insertando mensaje: {:?}", e);
+            Html("❌ Error guardando el mensaje")
+        }
+    }
 }
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret = match env::var("RECAPTCHA_SECRET_KEY") {
-        Ok(v) => v,
-        Err(_) => {
-            eprintln!("❌ RECAPTCHA_SECRET_KEY no definida");
-            return false;
-        }
-    };
+    let secret = env::var("RECAPTCHA_SECRET")
+        .expect("RECAPTCHA_SECRET no encontrada");
 
     let client = reqwest::Client::new();
-
     let res = client
         .post("https://www.google.com/recaptcha/api/siteverify")
         .form(&[
@@ -106,21 +90,11 @@ async fn verify_recaptcha(token: &str) -> bool {
         .send()
         .await;
 
-    let resp = match res {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("❌ Error enviando request a reCAPTCHA: {:?}", e);
-            return false;
+    if let Ok(resp) = res {
+        if let Ok(json) = resp.json::<serde_json::Value>().await {
+            return json["success"].as_bool().unwrap_or(false);
         }
-    };
+    }
 
-    let json = match resp.json::<serde_json::Value>().await {
-        Ok(j) => j,
-        Err(e) => {
-            eprintln!("❌ Error parseando respuesta reCAPTCHA: {:?}", e);
-            return false;
-        }
-    };
-
-    json["success"].as_bool().unwrap_or(false)
+    false
 }
