@@ -103,7 +103,7 @@ async fn upload_image(
 async fn list_images(
     State(pool): State<PgPool>,
 ) -> impl IntoResponse {
-    let rows = sqlx::query!("SELECT filename FROM images ORDER BY created_at DESC")
+    let rows = sqlx::query("SELECT filename FROM images ORDER BY created_at DESC")
         .fetch_all(&pool)
         .await
         .unwrap();
