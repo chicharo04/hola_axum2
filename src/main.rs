@@ -1,15 +1,14 @@
 use axum::{
-    extract::{Form, State, Multipart},
+    extract::{Form, Multipart, State},
     response::{Html, IntoResponse},
-    routing::post,
+    routing::{get, post},
     Router,
 };
-use std::fs;
-use uuid::Uuid;
 use serde::Deserialize;
 use sqlx::PgPool;
-use std::{env, net::SocketAddr};
+use std::{env, fs, net::SocketAddr};
 use tower_http::{cors::CorsLayer, services::ServeDir};
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 struct FormData {
@@ -23,33 +22,28 @@ struct FormData {
 async fn main() {
     dotenvy::dotenv().ok();
 
-    let database_url =
-        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
-
-    let pool = PgPool::connect(&database_url)
-        .await
-        .expect("Error conectando a Postgres");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+    let pool = PgPool::connect(&database_url).await.unwrap();
 
     let app = Router::new()
-    .nest_service("/", ServeDir::new("static"))
-    .nest_service("/uploads", ServeDir::new("uploads")) // 👈 NUEVO
-    .route("/enviar", post(enviar))
-    .route("/upload-image", post(upload_image)) // 👈 NUEVO
-    .with_state(pool)
-    .layer(CorsLayer::permissive());
+        .nest_service("/", ServeDir::new("static"))
+        .nest_service("/uploads", ServeDir::new("uploads"))
+        .route("/enviar", post(enviar))
+        .route("/upload-image", post(upload_image))
+        .route("/images", get(list_images))
+        .with_state(pool)
+        .layer(CorsLayer::permissive());
 
-    let port = env::var("PORT")
-        .unwrap_or_else(|_| "3000".to_string())
-        .parse::<u16>()
-        .unwrap();
-
+    let port = env::var("PORT").unwrap_or("3000".into()).parse().unwrap();
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-    println!("Servidor corriendo en {}", addr);
-
-    axum::serve(listener, app).await.unwrap();
+    println!("Servidor en {}", addr);
+    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
+        .await
+        .unwrap();
 }
+
+/* ---------------- MENSAJES ---------------- */
 
 async fn enviar(
     State(pool): State<PgPool>,
@@ -63,7 +57,7 @@ async fn enviar(
         return Html("❌ reCAPTCHA inválido");
     }
 
-    let result = sqlx::query(
+    let res = sqlx::query(
         "INSERT INTO messages (name, message) VALUES ($1, $2)",
     )
     .bind(&form.nombre)
@@ -71,22 +65,63 @@ async fn enviar(
     .execute(&pool)
     .await;
 
-    match result {
+    match res {
         Ok(_) => Html("✅ Mensaje enviado correctamente"),
-        Err(e) => {
-            eprintln!("Error insertando mensaje: {:?}", e);
-            Html("❌ Error guardando el mensaje")
-        }
+        Err(_) => Html("❌ Error guardando mensaje"),
     }
 }
 
+/* ---------------- IMÁGENES ---------------- */
+
+async fn upload_image(
+    State(pool): State<PgPool>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    fs::create_dir_all("uploads").ok();
+
+    while let Ok(Some(field)) = multipart.next_field().await {
+        if field.name() == Some("image") {
+            let data = field.bytes().await.unwrap();
+            let filename = format!("{}.jpg", Uuid::new_v4());
+            let path = format!("uploads/{}", filename);
+
+            fs::write(&path, data).unwrap();
+
+            sqlx::query("INSERT INTO images (filename) VALUES ($1)")
+                .bind(&filename)
+                .execute(&pool)
+                .await
+                .unwrap();
+
+            return Html("✅ Imagen subida");
+        }
+    }
+
+    Html("❌ Error")
+}
+
+async fn list_images(
+    State(pool): State<PgPool>,
+) -> impl IntoResponse {
+    let rows = sqlx::query!("SELECT filename FROM images ORDER BY created_at DESC")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+
+    let images: Vec<String> = rows
+        .into_iter()
+        .map(|r| format!("/uploads/{}", r.filename))
+        .collect();
+
+    axum::Json(images)
+}
+
+/* ---------------- reCAPTCHA ---------------- */
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret = env::var("RECAPTCHA_SECRET_KEY")
-        .expect("RECAPTCHA_SECRET_KEY no encontrada");
+    let secret = env::var("RECAPTCHA_SECRET_KEY").unwrap();
 
-    let client = reqwest::Client::new();
-    let res = client
+    let res = reqwest::Client::new()
         .post("https://www.google.com/recaptcha/api/siteverify")
         .form(&[
             ("secret", secret),
@@ -100,33 +135,5 @@ async fn verify_recaptcha(token: &str) -> bool {
             return json["success"].as_bool().unwrap_or(false);
         }
     }
-
     false
 }
-async fn upload_image(
-    mut multipart: Multipart,
-) -> impl IntoResponse {
-    while let Ok(Some(field)) = multipart.next_field().await {
-        if let Some(name) = field.name() {
-            if name == "image" {
-                let data = field.bytes().await.unwrap();
-
-                fs::create_dir_all("uploads").ok();
-
-                let filename = format!("{}.jpg", Uuid::new_v4());
-                let path = format!("uploads/{}", filename);
-
-                fs::write(&path, data).unwrap();
-
-                return Html(format!(
-                    "<img src=\"/uploads/{}\" width=\"200\">",
-                    filename
-                ));
-            }
-        }
-    }
-
-    Html("❌ Error subiendo imagen")
-}
-
-

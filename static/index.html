@@ -1,40 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Axum + PostgreSQL</title>
+<meta charset="UTF-8">
+<title>Axum App</title>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-    <style>
-        .carousel img {
-            width: 200px;
-            margin: 5px;
-        }
-    </style>
+<style>
+.carousel img {
+    width: 200px;
+    margin: 10px;
+}
+</style>
 </head>
 <body>
 
-<h1>Enviar mensaje</h1>
-
+<h2>Enviar mensaje</h2>
 <form action="/enviar" method="post">
-    <input type="text" name="nombre" placeholder="Nombre" required><br><br>
-
+    <input name="nombre" placeholder="Nombre" required><br><br>
     <textarea name="mensaje" placeholder="Mensaje" required></textarea><br><br>
 
     <!-- ❗ NO TOCAR -->
     <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div><br>
 
-    <button type="submit">Enviar</button>
+    <button>Enviar</button>
 </form>
 
 <hr>
 
 <h2>Subir imagen</h2>
-
 <form action="/upload-image" method="post" enctype="multipart/form-data">
-    <input type="file" name="image" accept="image/*" required>
-    <button type="submit">Subir</button>
+    <input type="file" name="image" required>
+    <button>Subir</button>
 </form>
 
 <hr>
@@ -43,7 +39,16 @@
 <div class="carousel" id="carousel"></div>
 
 <script>
-fetch('/uploads')
+fetch('/images')
+.then(r => r.json())
+.then(images => {
+    const div = document.getElementById('carousel');
+    images.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        div.appendChild(img);
+    });
+});
 </script>
 
 </body>
