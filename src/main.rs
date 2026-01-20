@@ -60,7 +60,7 @@ async fn enviar(
     }
 
     let result = sqlx::query(
-        "INSERT INTO mensajes (nombre, mensaje) VALUES ($1, $2)",
+        "INSERT INTO messages (name, message) VALUES ($1, $2)",
     )
     .bind(&form.nombre)
     .bind(&form.mensaje)
@@ -75,6 +75,7 @@ async fn enviar(
         }
     }
 }
+
 
 async fn verify_recaptcha(token: &str) -> bool {
     let secret = env::var("RECAPTCHA_SECRET")
