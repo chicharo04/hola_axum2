@@ -1,54 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Axum App</title>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <meta charset="UTF-8">
+    <title>Axum + PostgreSQL en Railway</title>
 
-<style>
-.carousel img {
-    width: 200px;
-    margin: 10px;
-}
-</style>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .carousel img {
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>Enviar mensaje</h2>
+<h1>Axum + PostgreSQL en Railway</h1>
+
+<!-- 📝 FORMULARIO MENSAJE (NO SE TOCA reCAPTCHA) -->
 <form action="/enviar" method="post">
-    <input name="nombre" placeholder="Nombre" required><br><br>
+    <input type="text" name="nombre" placeholder="Nombre" required><br><br>
+
     <textarea name="mensaje" placeholder="Mensaje" required></textarea><br><br>
 
-    <!-- ❗ NO TOCAR -->
     <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div><br>
 
-    <button>Enviar</button>
+    <button type="submit">Enviar</button>
 </form>
 
 <hr>
 
+<!-- 📤 FORMULARIO SUBIR IMAGEN -->
 <h2>Subir imagen</h2>
+
 <form action="/upload-image" method="post" enctype="multipart/form-data">
-    <input type="file" name="image" required>
-    <button>Subir</button>
+
+    <input type="file" name="image" accept="image/*" required>
+    <button type="submit">Subir</button>
 </form>
 
 <hr>
 
-<h2>Carrusel</h2>
+<!-- 🎠 CARRUSEL -->
+<h2>Galería</h2>
 <div class="carousel" id="carousel"></div>
 
 <script>
-fetch('/images')
-.then(r => r.json())
-.then(images => {
-    const div = document.getElementById('carousel');
+async function loadImages() {
+    const res = await fetch("/images");
+    const images = await res.json();
+
+    const container = document.getElementById("carousel");
+    container.innerHTML = "";
+
     images.forEach(src => {
-        const img = document.createElement('img');
+        const img = document.createElement("img");
         img.src = src;
-        div.appendChild(img);
+        container.appendChild(img);
     });
-});
+}
+
+loadImages();
 </script>
 
 </body>
