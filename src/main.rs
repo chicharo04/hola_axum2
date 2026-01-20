@@ -78,8 +78,8 @@ async fn enviar(
 
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret = env::var("RECAPTCHA_SECRET")
-        .expect("RECAPTCHA_SECRET no encontrada");
+    let secret = env::var("RECAPTCHA_SECRET_KEY")
+        .expect("RECAPTCHA_SECRET_KEY no encontrada");
 
     let client = reqwest::Client::new();
     let res = client
@@ -99,3 +99,4 @@ async fn verify_recaptcha(token: &str) -> bool {
 
     false
 }
+
