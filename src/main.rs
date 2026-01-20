@@ -1,9 +1,11 @@
 use axum::{
-    extract::{Form, State},
-    response::Html,
+    extract::{Form, State, Multipart},
+    response::{Html, IntoResponse},
     routing::post,
     Router,
 };
+use std::fs;
+use uuid::Uuid;
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::{env, net::SocketAddr};
@@ -29,10 +31,12 @@ async fn main() {
         .expect("Error conectando a Postgres");
 
     let app = Router::new()
-        .nest_service("/", ServeDir::new("static"))
-        .route("/enviar", post(enviar))
-        .with_state(pool)
-        .layer(CorsLayer::permissive());
+    .nest_service("/", ServeDir::new("static"))
+    .nest_service("/uploads", ServeDir::new("uploads")) // 👈 NUEVO
+    .route("/enviar", post(enviar))
+    .route("/upload-image", post(upload_image)) // 👈 NUEVO
+    .with_state(pool)
+    .layer(CorsLayer::permissive());
 
     let port = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
@@ -99,4 +103,30 @@ async fn verify_recaptcha(token: &str) -> bool {
 
     false
 }
+async fn upload_image(
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    while let Ok(Some(field)) = multipart.next_field().await {
+        if let Some(name) = field.name() {
+            if name == "image" {
+                let data = field.bytes().await.unwrap();
+
+                fs::create_dir_all("uploads").ok();
+
+                let filename = format!("{}.jpg", Uuid::new_v4());
+                let path = format!("uploads/{}", filename);
+
+                fs::write(&path, data).unwrap();
+
+                return Html(format!(
+                    "<img src=\"/uploads/{}\" width=\"200\">",
+                    filename
+                ));
+            }
+        }
+    }
+
+    Html("❌ Error subiendo imagen")
+}
+
 
