@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Form, Multipart, State},
+    extract::{Form, State},
     response::{Html, IntoResponse},
     routing::{get, post},
     Router,
@@ -8,7 +8,6 @@ use serde::Deserialize;
 use sqlx::{PgPool, Row};
 use std::{env, net::SocketAddr};
 use tower_http::{cors::CorsLayer, services::ServeDir};
-
 
 #[derive(Deserialize)]
 struct FormData {
@@ -22,23 +21,37 @@ struct FormData {
 async fn main() {
     dotenvy::dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
-    let pool = PgPool::connect(&database_url).await.unwrap();
+    /* -------- DATABASE -------- */
+    let database_url =
+        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+    let pool = PgPool::connect(&database_url)
+        .await
+        .expect("Error conectando a Postgres");
 
+    /* -------- ROUTER -------- */
     let app = Router::new()
         .nest_service("/", ServeDir::new("static"))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .route("/enviar", post(enviar))
-        .route("/upload-image", post(upload_image))
         .route("/images", get(list_images))
         .with_state(pool)
         .layer(CorsLayer::permissive());
 
-    let port = env::var("PORT").unwrap_or("3000".into()).parse().unwrap();
+    /* -------- PORT (RAILWAY FIX) -------- */
+    let port: u16 = env::var("PORT")
+        .expect("PORT no encontrada")
+        .parse()
+        .expect("PORT inválido");
+
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-    println!("Servidor en {}", addr);
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
+    println!("Servidor escuchando en {}", addr);
+
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .expect("Error al bindear el puerto");
+
+    axum::serve(listener, app)
         .await
         .unwrap();
 }
@@ -57,7 +70,7 @@ async fn enviar(
         return Html("❌ reCAPTCHA inválido");
     }
 
-    let res = sqlx::query(
+    let result = sqlx::query(
         "INSERT INTO messages (name, message) VALUES ($1, $2)",
     )
     .bind(&form.nombre)
@@ -65,42 +78,16 @@ async fn enviar(
     .execute(&pool)
     .await;
 
-    match res {
+    match result {
         Ok(_) => Html("✅ Mensaje enviado correctamente"),
-        Err(_) => Html("❌ Error guardando mensaje"),
-    }
-}
-
-/* ---------------- IMÁGENES ---------------- */
-
-async fn upload_image(
-    State(pool): State<PgPool>,
-    mut multipart: Multipart,
-) -> Html<&'static str> {
-    use tokio::io::AsyncWriteExt;
-
-    tokio::fs::create_dir_all("uploads").await.unwrap();
-
-    while let Some(field) = multipart.next_field().await.unwrap() {
-        if field.name() == Some("image") {
-            let filename = field.file_name().unwrap().to_string();
-            let data = field.bytes().await.unwrap();
-
-            let path = format!("uploads/{}", filename);
-            let mut file = tokio::fs::File::create(&path).await.unwrap();
-            file.write_all(&data).await.unwrap();
-
-            sqlx::query("INSERT INTO images (filename) VALUES ($1)")
-                .bind(&filename)
-                .execute(&pool)
-                .await
-                .unwrap();
+        Err(e) => {
+            eprintln!("Error insertando mensaje: {:?}", e);
+            Html("❌ Error guardando el mensaje")
         }
     }
-
-    Html("✅ Imagen subida correctamente")
 }
 
+/* ---------------- IMÁGENES (SOLO LECTURA) ---------------- */
 
 async fn list_images(
     State(pool): State<PgPool>,
@@ -108,7 +95,7 @@ async fn list_images(
     let rows = sqlx::query("SELECT filename FROM images ORDER BY created_at DESC")
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .unwrap_or_default();
 
     let images: Vec<String> = rows
         .into_iter()
@@ -121,11 +108,12 @@ async fn list_images(
     axum::Json(images)
 }
 
-
 /* ---------------- reCAPTCHA ---------------- */
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret = env::var("RECAPTCHA_SECRET_KEY").unwrap();
+    let secret =
+        env::var("RECAPTCHA_SECRET_KEY")
+            .expect("RECAPTCHA_SECRET_KEY no encontrada");
 
     let res = reqwest::Client::new()
         .post("https://www.google.com/recaptcha/api/siteverify")
