@@ -2,7 +2,7 @@ use axum::{
     extract::{Form, State},
     response::{Html, IntoResponse},
     routing::{get, post},
-    Router,
+    Json, Router,
 };
 use serde::Deserialize;
 use sqlx::{PgPool, Row};
@@ -21,14 +21,12 @@ struct FormData {
 async fn main() {
     dotenvy::dotenv().ok();
 
-    /* -------- DATABASE -------- */
     let database_url =
-        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+        env::var("DATABASE_URL").expect("❌ DATABASE_URL no encontrada");
     let pool = PgPool::connect(&database_url)
         .await
-        .expect("Error conectando a Postgres");
+        .expect("❌ No se pudo conectar a la BD");
 
-    /* -------- ROUTER -------- */
     let app = Router::new()
         .nest_service("/", ServeDir::new("static"))
         .nest_service("/uploads", ServeDir::new("uploads"))
@@ -37,23 +35,20 @@ async fn main() {
         .with_state(pool)
         .layer(CorsLayer::permissive());
 
-    /* -------- PORT (RAILWAY FIX) -------- */
     let port: u16 = env::var("PORT")
-        .expect("PORT no encontrada")
+        .unwrap_or("3000".into())
         .parse()
-        .expect("PORT inválido");
+        .unwrap();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    println!("🚀 Servidor en {}", addr);
 
-    println!("Servidor escuchando en {}", addr);
-
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .expect("Error al bindear el puerto");
-
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    axum::serve(
+        tokio::net::TcpListener::bind(addr).await.unwrap(),
+        app,
+    )
+    .await
+    .unwrap();
 }
 
 /* ---------------- MENSAJES ---------------- */
@@ -70,7 +65,7 @@ async fn enviar(
         return Html("❌ reCAPTCHA inválido");
     }
 
-    let result = sqlx::query(
+    let res = sqlx::query(
         "INSERT INTO messages (name, message) VALUES ($1, $2)",
     )
     .bind(&form.nombre)
@@ -78,24 +73,23 @@ async fn enviar(
     .execute(&pool)
     .await;
 
-    match result {
+    match res {
         Ok(_) => Html("✅ Mensaje enviado correctamente"),
-        Err(e) => {
-            eprintln!("Error insertando mensaje: {:?}", e);
-            Html("❌ Error guardando el mensaje")
-        }
+        Err(_) => Html("❌ Error guardando mensaje"),
     }
 }
 
-/* ---------------- IMÁGENES (SOLO LECTURA) ---------------- */
+/* ---------------- IMÁGENES ---------------- */
 
 async fn list_images(
     State(pool): State<PgPool>,
 ) -> impl IntoResponse {
-    let rows = sqlx::query("SELECT filename FROM images ORDER BY created_at DESC")
-        .fetch_all(&pool)
-        .await
-        .unwrap_or_default();
+    let rows = sqlx::query(
+        "SELECT filename FROM images ORDER BY created_at DESC",
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
 
     let images: Vec<String> = rows
         .into_iter()
@@ -105,15 +99,13 @@ async fn list_images(
         })
         .collect();
 
-    axum::Json(images)
+    Json(images)
 }
 
 /* ---------------- reCAPTCHA ---------------- */
 
 async fn verify_recaptcha(token: &str) -> bool {
-    let secret =
-        env::var("RECAPTCHA_SECRET_KEY")
-            .expect("RECAPTCHA_SECRET_KEY no encontrada");
+    let secret = env::var("RECAPTCHA_SECRET_KEY").unwrap();
 
     let res = reqwest::Client::new()
         .post("https://www.google.com/recaptcha/api/siteverify")
