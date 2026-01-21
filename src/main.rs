@@ -22,16 +22,20 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     let database_url =
-        env::var("DATABASE_URL").expect("❌ DATABASE_URL no encontrada");
+        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
     let pool = PgPool::connect(&database_url)
         .await
-        .expect("❌ No se pudo conectar a la BD");
+        .expect("No se pudo conectar a la BD");
 
     let app = Router::new()
-        .nest_service("/", ServeDir::new("static"))
-        .nest_service("/uploads", ServeDir::new("uploads"))
+        // RUTAS API
         .route("/enviar", post(enviar))
         .route("/images", get(list_images))
+
+        // ARCHIVOS ESTÁTICOS
+        .nest_service("/uploads", ServeDir::new("uploads"))
+        .fallback_service(ServeDir::new("static"))
+
         .with_state(pool)
         .layer(CorsLayer::permissive());
 
