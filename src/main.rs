@@ -1,6 +1,6 @@
 use axum::{
     extract::{Form, State},
-    response::{Html, IntoResponse},
+    response::Html,
     routing::{get, post},
     Json, Router,
 };
@@ -28,14 +28,10 @@ async fn main() {
         .expect("No se pudo conectar a la BD");
 
     let app = Router::new()
-        // RUTAS API
         .route("/enviar", post(enviar))
         .route("/images", get(list_images))
-
-        // ARCHIVOS ESTÁTICOS
         .nest_service("/uploads", ServeDir::new("uploads"))
         .fallback_service(ServeDir::new("static"))
-
         .with_state(pool)
         .layer(CorsLayer::permissive());
 
@@ -60,26 +56,49 @@ async fn main() {
 async fn enviar(
     State(pool): State<PgPool>,
     Form(form): Form<FormData>,
-) -> Html<&'static str> {
+) -> Html<String> {
+    let nombre = form.nombre.trim();
+    let mensaje = form.mensaje.trim();
+
+    /* VALIDACIONES */
+
+    if nombre.is_empty() {
+        return Html("❌ El nombre es obligatorio".into());
+    }
+
+    if nombre.len() < 3 || nombre.len() > 50 {
+        return Html("❌ El nombre debe tener entre 3 y 50 caracteres".into());
+    }
+
+    if mensaje.is_empty() {
+        return Html("❌ El mensaje es obligatorio".into());
+    }
+
+    if mensaje.len() < 10 || mensaje.len() > 500 {
+        return Html("❌ El mensaje debe tener entre 10 y 500 caracteres".into());
+    }
+
     if form.recaptcha.is_empty() {
-        return Html("❌ Debes completar el reCAPTCHA");
+        return Html("❌ Debes completar el reCAPTCHA".into());
     }
 
     if !verify_recaptcha(&form.recaptcha).await {
-        return Html("❌ reCAPTCHA inválido");
+        return Html("❌ reCAPTCHA inválido".into());
     }
+
+    /* INSERT */
 
     let res = sqlx::query(
         "INSERT INTO messages (name, message) VALUES ($1, $2)",
     )
-    .bind(&form.nombre)
-    .bind(&form.mensaje)
+    .bind(nombre)
+    .bind(mensaje)
     .execute(&pool)
     .await;
 
     match res {
-        Ok(_) => Html("✅ Mensaje enviado correctamente"),
-        Err(_) => Html("❌ Error guardando mensaje"),
+        Ok(_) => Html("✅ Mensaje enviado correctamente".into()),
+        Err(_) => Html("❌ Error guardando mensaje".into()),
     }
 }
 
@@ -87,7 +106,7 @@ async fn enviar(
 
 async fn list_images(
     State(pool): State<PgPool>,
-) -> impl IntoResponse {
+) -> Json<Vec<String>> {
     let rows = sqlx::query(
         "SELECT filename FROM images ORDER BY created_at DESC",
     )
@@ -95,7 +114,7 @@ async fn list_images(
     .await
     .unwrap();
 
-    let images: Vec<String> = rows
+    let images = rows
         .into_iter()
         .map(|row| {
             let filename: String = row.get("filename");

@@ -26,10 +26,6 @@
             border-radius: 8px;
         }
 
-        form {
-            margin-bottom: 40px;
-        }
-
         input, textarea, button {
             width: 100%;
             padding: 10px;
@@ -47,7 +43,6 @@
             background: #555;
         }
 
-        /* GALERÍA */
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -68,17 +63,32 @@
 
     <h1>Axum + PostgreSQL en Railway</h1>
 
-    <!-- FORMULARIO (SE QUEDA IGUAL) -->
     <form action="/enviar" method="post">
-        <input type="text" name="nombre" placeholder="Nombre" required>
-        <textarea name="mensaje" placeholder="Mensaje" required></textarea>
+        <input
+            type="text"
+            name="nombre"
+            placeholder="Nombre"
+            required
+            minlength="3"
+            maxlength="50"
+        >
 
-        <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
+        <textarea
+            name="mensaje"
+            placeholder="Mensaje"
+            required
+            minlength="10"
+            maxlength="500"
+        ></textarea>
+
+        <div
+            class="g-recaptcha"
+            data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ">
+        </div>
 
         <button type="submit">Enviar</button>
     </form>
 
-    <!-- GALERÍA -->
     <h2>Galería</h2>
 
     <div class="gallery">
