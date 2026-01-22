@@ -2,102 +2,157 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Axum + PostgreSQL en Railway</title>
+    <title>Venta de Motos | Axum Motors</title>
 
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            background: #f2f2f2;
             margin: 0;
-            padding: 40px;
+            padding: 0;
         }
 
-        h1 {
+        header {
+            background: #111;
+            color: white;
+            padding: 20px;
             text-align: center;
         }
 
-        .container {
-            max-width: 900px;
-            margin: auto;
+        section {
+            padding: 40px;
             background: white;
-            padding: 30px;
+            margin: 20px auto;
+            max-width: 1100px;
             border-radius: 8px;
         }
 
-        input, textarea, button {
+        h2 {
+            margin-top: 0;
+        }
+
+        /* HERO */
+        .hero {
+            background: url("/uploads/hero.jpg") center/cover no-repeat;
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
+        /* CATÁLOGO */
+        .catalogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .moto {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .moto img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        /* FORMULARIO */
+        form input, form textarea, form button {
             width: 100%;
             padding: 10px;
             margin-top: 10px;
         }
 
-        button {
-            background: #333;
+        form button {
+            background: #111;
             color: white;
             border: none;
             cursor: pointer;
         }
 
-        button:hover {
-            background: #555;
+        form button:hover {
+            background: #333;
         }
 
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .gallery img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 6px;
+        footer {
+            background: #111;
+            color: white;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<header>
+    <h1>Axum Motors</h1>
+    <p>Venta de motos nuevas y seminuevas</p>
+</header>
 
-    <h1>Axum + PostgreSQL en Railway</h1>
+<!-- HERO -->
+<div class="hero">
+    <h2>Potencia, diseño y velocidad</h2>
+    <p>Encuentra la moto perfecta para ti</p>
+</div>
 
-    <form action="/enviar" method="post">
-        <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre"
-            required
-            minlength="3"
-            maxlength="50"
-        >
+<!-- CATÁLOGO -->
+<section>
+    <h2>Catálogo de Motos</h2>
 
-        <textarea
-            name="mensaje"
-            placeholder="Mensaje"
-            required
-            minlength="10"
-            maxlength="500"
-        ></textarea>
-
-        <div
-            class="g-recaptcha"
-            data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ">
+    <div class="catalogo">
+        <div class="moto">
+            <img src="/uploads/IMG1.png">
+            <h3>Moto Deportiva 600cc</h3>
+            <p>$120,000 MXN</p>
         </div>
 
-        <button type="submit">Enviar</button>
-    </form>
+        <div class="moto">
+            <img src="/uploads/IMG2.jpg">
+            <h3>Moto Naked 750cc</h3>
+            <p>$135,000 MXN</p>
+        </div>
 
-    <h2>Galería</h2>
-
-    <div class="gallery">
-        <img src="/uploads/IMG1.png">
-        <img src="/uploads/IMG2.jpg">
-        <img src="/uploads/IMG3.jpg">
+        <div class="moto">
+            <img src="/uploads/IMG3.jpg">
+            <h3>Moto Touring 900cc</h3>
+            <p>$180,000 MXN</p>
+        </div>
     </div>
+</section>
 
-</div>
+<!-- BENEFICIOS -->
+<section>
+    <h2>¿Por qué comprar con nosotros?</h2>
+    <ul>
+        <li>✔ Garantía de 12 meses</li>
+        <li>✔ Financiamiento disponible</li>
+        <li>✔ Envíos a todo México</li>
+        <li>✔ Taller certificado</li>
+    </ul>
+</section>
+
+<!-- CONTACTO -->
+<section>
+    <h2>Contáctanos</h2>
+
+    <form action="/enviar" method="post">
+        <input type="text" name="nombre" placeholder="Nombre completo" required>
+        <textarea name="mensaje" placeholder="Mensaje o moto de interés" required></textarea>
+
+        <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
+
+        <button type="submit">Enviar mensaje</button>
+    </form>
+</section>
+
+<footer>
+    <p>© 2026 Axum Motors | Todos los derechos reservados</p>
+</footer>
 
 </body>
 </html>

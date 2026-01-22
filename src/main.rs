@@ -1,6 +1,6 @@
 use axum::{
     extract::{Form, State},
-    response::Html,
+    response::Redirect,
     routing::{get, post},
     Json, Router,
 };
@@ -56,7 +56,7 @@ async fn main() {
 async fn enviar(
     State(pool): State<PgPool>,
     Form(form): Form<FormData>,
-) -> Html<String> {
+) -> impl IntoResponse {
     let nombre = form.nombre.trim();
     let mensaje = form.mensaje.trim();
 
@@ -97,9 +97,10 @@ async fn enviar(
     .await;
 
     match res {
-        Ok(_) => Html("✅ Mensaje enviado correctamente".into()),
-        Err(_) => Html("❌ Error guardando mensaje".into()),
-    }
+    Ok(_) => Redirect::to("/gracias.html").into_response(),
+    Err(_) => Html("❌ Error guardando mensaje").into_response(),
+}
+
 }
 
 /* ---------------- IMÁGENES ---------------- */
