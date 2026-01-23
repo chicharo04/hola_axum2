@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Form, State},
+    extract::{Form, State, Multipart},
     routing::{get, post},
     Json, Router,
 };
@@ -8,7 +8,7 @@ use serde::Deserialize;
 use sqlx::{PgPool, Row};
 use std::{env, net::SocketAddr};
 use tower_http::{cors::CorsLayer, services::ServeDir};
-
+use tokio::io::AsyncWriteExt;
 
 #[derive(Deserialize)]
 struct FormData {
@@ -30,6 +30,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/enviar", post(enviar))
+        .route("/upload-image", post(upload_image))
         .route("/images", get(list_images))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .fallback_service(ServeDir::new("static"))
@@ -93,14 +94,43 @@ async fn enviar(
     }
 }
 
+/* ---------------- SUBIR IMÁGENES ---------------- */
 
-/* ---------------- IMÁGENES ---------------- */
+async fn upload_image(
+    State(pool): State<PgPool>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+
+    tokio::fs::create_dir_all("uploads").await.unwrap();
+
+    while let Some(field) = multipart.next_field().await.unwrap() {
+        if field.name() == Some("image") {
+            let filename = field.file_name().unwrap().to_string();
+            let bytes = field.bytes().await.unwrap();
+
+            let path = format!("uploads/{}", filename);
+            let mut file = tokio::fs::File::create(&path).await.unwrap();
+            file.write_all(&bytes).await.unwrap();
+
+            sqlx::query("INSERT INTO images (filename) VALUES ($1)")
+                .bind(&filename)
+                .execute(&pool)
+                .await
+                .unwrap();
+        }
+    }
+
+    Redirect::to("/").into_response()
+}
+
+/* ---------------- LISTAR IMÁGENES ---------------- */
 
 async fn list_images(
     State(pool): State<PgPool>,
 ) -> Json<Vec<String>> {
+
     let rows = sqlx::query(
-        "SELECT filename FROM images ORDER BY created_at DESC",
+        "SELECT filename FROM images ORDER BY created_at DESC"
     )
     .fetch_all(&pool)
     .await
@@ -115,26 +145,4 @@ async fn list_images(
         .collect();
 
     Json(images)
-}
-
-/* ---------------- reCAPTCHA ---------------- */
-
-async fn verify_recaptcha(token: &str) -> bool {
-    let secret = env::var("RECAPTCHA_SECRET_KEY").unwrap();
-
-    let res = reqwest::Client::new()
-        .post("https://www.google.com/recaptcha/api/siteverify")
-        .form(&[
-            ("secret", secret),
-            ("response", token.to_string()),
-        ])
-        .send()
-        .await;
-
-    if let Ok(resp) = res {
-        if let Ok(json) = resp.json::<serde_json::Value>().await {
-            return json["success"].as_bool().unwrap_or(false);
-        }
-    }
-    false
 }
