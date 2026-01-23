@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <title>Venta de Motos | Axum Motors</title>
 
+    <!-- Google reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
@@ -21,19 +24,19 @@
             text-align: center;
         }
 
+        .hero {
+            background: #000;
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
         section {
             padding: 40px;
             background: white;
             margin: 20px auto;
             max-width: 1100px;
             border-radius: 8px;
-        }
-
-        .hero {
-            background: #000;
-            color: white;
-            padding: 80px 40px;
-            text-align: center;
         }
 
         .catalogo {
@@ -53,12 +56,21 @@
             width: 100%;
             height: 180px;
             object-fit: cover;
+            border-radius: 4px;
         }
 
-        form input, form textarea, form button {
+        form input,
+        form textarea,
+        form button {
             width: 100%;
             padding: 10px;
             margin-top: 10px;
+            box-sizing: border-box;
+        }
+
+        form textarea {
+            resize: vertical;
+            min-height: 120px;
         }
 
         form button {
@@ -66,6 +78,11 @@
             color: white;
             border: none;
             cursor: pointer;
+            font-size: 16px;
+        }
+
+        form button:hover {
+            background: #333;
         }
 
         footer {
@@ -73,9 +90,11 @@
             color: white;
             text-align: center;
             padding: 20px;
+            margin-top: 40px;
         }
     </style>
 </head>
+
 <body>
 
 <header>
@@ -93,19 +112,19 @@
 
     <div class="catalogo">
         <div class="moto">
-            <img src="/uploads/IMG1.png">
+            <img src="/uploads/IMG1.png" alt="Moto deportiva 600cc">
             <h3>Moto Deportiva 600cc</h3>
             <p>$120,000 MXN</p>
         </div>
 
         <div class="moto">
-            <img src="/uploads/IMG2.jpg">
+            <img src="/uploads/IMG2.jpg" alt="Moto naked 750cc">
             <h3>Moto Naked 750cc</h3>
             <p>$135,000 MXN</p>
         </div>
 
         <div class="moto">
-            <img src="/uploads/IMG3.jpg">
+            <img src="/uploads/IMG3.jpg" alt="Moto touring 900cc">
             <h3>Moto Touring 900cc</h3>
             <p>$180,000 MXN</p>
         </div>
@@ -116,7 +135,15 @@
     <h2>Comparte tu moto</h2>
 
     <form action="/upload-image" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
+        <label>
+            Selecciona una imagen (PNG, JPG, WEBP – máx 5MB)
+            <input
+                type="file"
+                name="image"
+                accept="image/png,image/jpeg,image/webp"
+                required>
+        </label>
+
         <button type="submit">Subir imagen</button>
     </form>
 </section>
@@ -129,11 +156,24 @@
 <section>
     <h2>Contáctanos</h2>
 
-    <form action="/enviar" method="post">
-        <input type="text" name="nombre" placeholder="Nombre completo" required>
-        <textarea name="mensaje" placeholder="Mensaje o moto de interés" required></textarea>
+    <form action="/enviar" method="post" autocomplete="off">
+        <input
+            type="text"
+            name="nombre"
+            placeholder="Nombre completo"
+            minlength="3"
+            maxlength="50"
+            required>
 
-        <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
+        <textarea
+            name="mensaje"
+            placeholder="Mensaje o moto de interés"
+            minlength="10"
+            maxlength="500"
+            required></textarea>
+
+        <div class="g-recaptcha"
+             data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
 
         <button type="submit">Enviar mensaje</button>
     </form>
@@ -145,21 +185,22 @@
 
 <script>
 fetch("/images")
-  .then(res => res.json())
-  .then(images => {
-    const gallery = document.getElementById("gallery");
+    .then(res => res.json())
+    .then(images => {
+        const gallery = document.getElementById("gallery");
 
-    images.forEach(src => {
-      const div = document.createElement("div");
-      div.className = "moto";
+        images.forEach(src => {
+            const div = document.createElement("div");
+            div.className = "moto";
 
-      const img = document.createElement("img");
-      img.src = src;
+            const img = document.createElement("img");
+            img.src = src;
+            img.alt = "Moto de cliente";
 
-      div.appendChild(img);
-      gallery.appendChild(div);
+            div.appendChild(img);
+            gallery.appendChild(div);
+        });
     });
-  });
 </script>
 
 </body>

@@ -9,6 +9,11 @@ use sqlx::{PgPool, Row};
 use std::{env, net::SocketAddr};
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use tokio::io::AsyncWriteExt;
+use uuid::Uuid;
+use regex::Regex;
+
+const MAX_IMAGE_SIZE: usize = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME: [&str; 4] = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 
 #[derive(Deserialize)]
 struct FormData {
@@ -22,8 +27,7 @@ struct FormData {
 async fn main() {
     dotenvy::dotenv().ok();
 
-    let database_url =
-        env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
     let pool = PgPool::connect(&database_url)
         .await
         .expect("No se pudo conectar a la BD");
@@ -37,43 +41,34 @@ async fn main() {
         .with_state(pool)
         .layer(CorsLayer::permissive());
 
-    let port: u16 = env::var("PORT")
-        .unwrap_or("3000".into())
-        .parse()
-        .unwrap();
-
+    let port: u16 = env::var("PORT").unwrap_or("3000".into()).parse().unwrap();
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
+
     println!("🚀 Servidor en {}", addr);
 
-    axum::serve(
-        tokio::net::TcpListener::bind(addr).await.unwrap(),
-        app,
-    )
-    .await
-    .unwrap();
+    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
+        .await
+        .unwrap();
 }
 
 /* ---------------- MENSAJES ---------------- */
 
 async fn enviar(
     State(pool): State<PgPool>,
-    Form(data): Form<FormData>,
+    Form(mut data): Form<FormData>,
 ) -> impl IntoResponse {
 
-    if data.nombre.trim().is_empty() {
-        return Html("❌ El nombre es obligatorio").into_response();
-    }
+    sanitize_text(&mut data.nombre);
+    sanitize_text(&mut data.mensaje);
 
-    if data.nombre.len() < 3 || data.nombre.len() > 50 {
-        return Html("❌ El nombre debe tener entre 3 y 50 caracteres").into_response();
-    }
+    let name_re = Regex::new(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{3,50}$").unwrap();
 
-    if data.mensaje.trim().is_empty() {
-        return Html("❌ El mensaje es obligatorio").into_response();
+    if !name_re.is_match(&data.nombre) {
+        return Html("❌ Nombre inválido").into_response();
     }
 
     if data.mensaje.len() < 10 || data.mensaje.len() > 500 {
-        return Html("❌ El mensaje debe tener entre 10 y 500 caracteres").into_response();
+        return Html("❌ Mensaje inválido").into_response();
     }
 
     if data.recaptcha.is_empty() {
@@ -104,20 +99,41 @@ async fn upload_image(
     tokio::fs::create_dir_all("uploads").await.unwrap();
 
     while let Some(field) = multipart.next_field().await.unwrap() {
-        if field.name() == Some("image") {
-            let filename = field.file_name().unwrap().to_string();
-            let bytes = field.bytes().await.unwrap();
 
-            let path = format!("uploads/{}", filename);
-            let mut file = tokio::fs::File::create(&path).await.unwrap();
-            file.write_all(&bytes).await.unwrap();
-
-            sqlx::query("INSERT INTO images (filename) VALUES ($1)")
-                .bind(&filename)
-                .execute(&pool)
-                .await
-                .unwrap();
+        if field.name() != Some("image") {
+            continue;
         }
+
+        let content_type = field.content_type().unwrap_or("").to_string();
+
+        if !ALLOWED_MIME.contains(&content_type.as_str()) {
+            return Html("❌ Tipo de archivo no permitido").into_response();
+        }
+
+        let bytes = field.bytes().await.unwrap();
+
+        if bytes.len() > MAX_IMAGE_SIZE {
+            return Html("❌ Imagen demasiado grande (máx 5MB)").into_response();
+        }
+
+        let extension = match content_type.as_str() {
+            "image/jpeg" | "image/jpg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            _ => return Html("❌ Formato inválido").into_response(),
+        };
+
+        let filename = format!("{}.{}", Uuid::new_v4(), extension);
+        let path = format!("uploads/{}", filename);
+
+        let mut file = tokio::fs::File::create(&path).await.unwrap();
+        file.write_all(&bytes).await.unwrap();
+
+        sqlx::query("INSERT INTO images (filename) VALUES ($1)")
+            .bind(&filename)
+            .execute(&pool)
+            .await
+            .unwrap();
     }
 
     Redirect::to("/").into_response()
@@ -129,20 +145,24 @@ async fn list_images(
     State(pool): State<PgPool>,
 ) -> Json<Vec<String>> {
 
-    let rows = sqlx::query(
-        "SELECT filename FROM images ORDER BY created_at DESC"
-    )
-    .fetch_all(&pool)
-    .await
-    .unwrap();
+    let rows = sqlx::query("SELECT filename FROM images ORDER BY created_at DESC")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
 
     let images = rows
         .into_iter()
-        .map(|row| {
-            let filename: String = row.get("filename");
-            format!("/uploads/{}", filename)
-        })
+        .map(|row| format!("/uploads/{}", row.get::<String, _>("filename")))
         .collect();
 
     Json(images)
+}
+
+/* ---------------- UTIL ---------------- */
+
+fn sanitize_text(text: &mut String) {
+    let forbidden = ["<", ">", "\"", "'", ";", "--"];
+    for f in forbidden {
+        *text = text.replace(f, "");
+    }
 }
