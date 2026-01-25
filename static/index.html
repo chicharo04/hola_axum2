@@ -85,6 +85,11 @@
             background: #333;
         }
 
+        .msg {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
         footer {
             background: #111;
             color: white;
@@ -145,6 +150,9 @@
         </label>
 
         <button type="submit">Subir imagen</button>
+
+        <!-- MENSAJE DE ERROR / ÉXITO -->
+        <div id="msg-image" class="msg"></div>
     </form>
 </section>
 
@@ -176,6 +184,9 @@
              data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
 
         <button type="submit">Enviar mensaje</button>
+
+        <!-- MENSAJE DE ERROR / ÉXITO -->
+        <div id="msg-form" class="msg"></div>
     </form>
 </section>
 
@@ -184,19 +195,41 @@
 </footer>
 
 <script>
+/* -------- SUBIR IMAGEN -------- */
+document.querySelector("form[action='/upload-image']").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const res = await fetch("/upload-image", {
+        method: "POST",
+        body: new FormData(e.target)
+    });
+
+    document.getElementById("msg-image").innerText = await res.text();
+});
+
+/* -------- ENVIAR MENSAJE -------- */
+document.querySelector("form[action='/enviar']").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const res = await fetch("/enviar", {
+        method: "POST",
+        body: new FormData(e.target)
+    });
+
+    document.getElementById("msg-form").innerText = await res.text();
+});
+
+/* -------- GALERÍA -------- */
 fetch("/images")
     .then(res => res.json())
     .then(images => {
         const gallery = document.getElementById("gallery");
-
         images.forEach(src => {
             const div = document.createElement("div");
             div.className = "moto";
-
             const img = document.createElement("img");
             img.src = src;
             img.alt = "Moto de cliente";
-
             div.appendChild(img);
             gallery.appendChild(div);
         });
