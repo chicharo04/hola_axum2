@@ -88,31 +88,36 @@ async fn upload_image(
 
     tokio::fs::create_dir_all("uploads").await.unwrap();
 
-    while let Some(field) = multipart.next_field().await.unwrap() {
+    while let Some(mut field) = multipart.next_field().await.unwrap() {
+
         if field.name() != Some("image") {
             continue;
         }
 
-        let mime = field.content_type().unwrap_or("");
+        // 👇 CLAVE: copiamos el MIME a String
+        let mime = field
+            .content_type()
+            .map(|m| m.to_string())
+            .unwrap_or_default();
 
-        if !ALLOWED_MIME.contains(&mime) {
-            return Html("❌ Archivo no permitido");
+        if !ALLOWED_MIME.contains(&mime.as_str()) {
+            return Html("❌ Tipo de archivo no permitido").into_response();
         }
 
         let bytes = field.bytes().await.unwrap();
 
         if bytes.len() > MAX_IMAGE_SIZE {
-            return Html("❌ Imagen mayor a 5MB");
+            return Html("❌ Imagen demasiado grande (máx 5MB)").into_response();
         }
 
-        let ext = match mime {
+        let extension = match mime.as_str() {
             "image/jpeg" | "image/jpg" => "jpg",
             "image/png" => "png",
             "image/webp" => "webp",
-            _ => return Html("❌ Formato inválido"),
+            _ => return Html("❌ Formato inválido").into_response(),
         };
 
-        let filename = format!("{}.{}", Uuid::new_v4(), ext);
+        let filename = format!("{}.{}", Uuid::new_v4(), extension);
         let path = format!("uploads/{}", filename);
 
         let mut file = tokio::fs::File::create(&path).await.unwrap();
@@ -125,8 +130,9 @@ async fn upload_image(
             .unwrap();
     }
 
-    Html("✅ Imagen subida correctamente")
+    Html("✅ Imagen subida correctamente").into_response()
 }
+
 
 /* ---------- LISTAR ---------- */
 
