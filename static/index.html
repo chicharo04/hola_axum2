@@ -1,239 +1,289 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Venta de Motos | Axum Motors</title>
+<meta charset="UTF-8">
+<title>Axum Motors | Vive la Potencia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Google reCAPTCHA -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<!-- Google reCAPTCHA -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --primary: #e10600;
+    --dark: #0f0f0f;
+    --light: #f5f5f5;
+    --gray: #1e1e1e;
+}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
+* {
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+}
 
-        header {
-            background: #111;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--dark);
+    color: white;
+}
 
-        .hero {
-            background: #000;
-            color: white;
-            padding: 80px 40px;
-            text-align: center;
-        }
+/* ---------- HEADER ---------- */
+header {
+    background: linear-gradient(90deg, #000, #111);
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-        section {
-            padding: 40px;
-            background: white;
-            margin: 20px auto;
-            max-width: 1100px;
-            border-radius: 8px;
-        }
+header h1 {
+    margin: 0;
+    color: var(--primary);
+    letter-spacing: 2px;
+}
 
-        .catalogo {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
+header p {
+    margin: 5px 0 0;
+    color: #ccc;
+}
 
-        .moto {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-        }
+/* ---------- HERO ---------- */
+.hero {
+    height: 90vh;
+    background:
+        linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)),
+        url("/uploads/hero.jpg") center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
 
-        .moto img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
+.hero h2 {
+    font-size: 3rem;
+    animation: fadeUp 1s ease;
+}
 
-        form input,
-        form textarea,
-        form button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            box-sizing: border-box;
-        }
+.hero p {
+    color: #ddd;
+    font-size: 1.2rem;
+    animation: fadeUp 1.4s ease;
+}
 
-        form textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
+.hero button {
+    margin-top: 30px;
+    padding: 15px 40px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform .3s, box-shadow .3s;
+}
 
-        form button {
-            background: #111;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
+.hero button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(225,6,0,.6);
+}
 
-        form button:hover {
-            background: #333;
-        }
+/* ---------- SECTIONS ---------- */
+section {
+    padding: 80px 5%;
+    background: var(--gray);
+}
 
-        .msg {
-            margin-top: 10px;
-            font-weight: bold;
-        }
+section:nth-child(even) {
+    background: var(--dark);
+}
 
-        footer {
-            background: #111;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-        }
-    </style>
+section h2 {
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+/* ---------- CARDS ---------- */
+.catalogo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+.moto {
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform .4s, box-shadow .4s;
+}
+
+.moto:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,.6);
+}
+
+.moto img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.moto div {
+    padding: 20px;
+}
+
+.moto h3 {
+    margin: 0;
+}
+
+.moto p {
+    color: #ccc;
+}
+
+/* ---------- FORM ---------- */
+form {
+    max-width: 600px;
+    margin: auto;
+}
+
+form input,
+form textarea,
+form button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+}
+
+form input,
+form textarea {
+    background: #000;
+    color: white;
+    border: 1px solid #333;
+}
+
+form button {
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    transition: background .3s;
+}
+
+form button:hover {
+    background: #ff1a1a;
+}
+
+/* ---------- GALLERY ---------- */
+#gallery {
+    animation: fadeIn 1s ease;
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+    background: #000;
+    text-align: center;
+    padding: 30px;
+    color: #777;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
 </head>
 
 <body>
 
 <header>
-    <h1>Axum Motors</h1>
-    <p>Venta de motos nuevas y seminuevas</p>
+    <h1>AXUM MOTORS</h1>
+    <p>La experiencia sobre dos ruedas</p>
 </header>
 
 <div class="hero">
-    <h2>Potencia, diseño y velocidad</h2>
-    <p>Encuentra la moto perfecta para ti</p>
+    <div>
+        <h2>Siente la carretera</h2>
+        <p>Potencia, diseño y libertad absoluta</p>
+        <button onclick="document.getElementById('catalogo').scrollIntoView()">Ver motos</button>
+    </div>
 </div>
 
-<section>
-    <h2>Catálogo de Motos</h2>
-
-    <div class="catalogo">
-        <div class="moto">
-            <img src="/uploads/IMG1.png" alt="Moto deportiva 600cc">
-            <h3>Moto Deportiva 600cc</h3>
+<section id="catalogo">
+<h2>Nuestras Motos</h2>
+<div class="catalogo">
+    <div class="moto">
+        <img src="/uploads/IMG1.png">
+        <div>
+            <h3>Deportiva 600cc</h3>
             <p>$120,000 MXN</p>
         </div>
+    </div>
 
-        <div class="moto">
-            <img src="/uploads/IMG2.jpg" alt="Moto naked 750cc">
-            <h3>Moto Naked 750cc</h3>
+    <div class="moto">
+        <img src="/uploads/IMG2.jpg">
+        <div>
+            <h3>Naked 750cc</h3>
             <p>$135,000 MXN</p>
         </div>
+    </div>
 
-        <div class="moto">
-            <img src="/uploads/IMG3.jpg" alt="Moto touring 900cc">
-            <h3>Moto Touring 900cc</h3>
+    <div class="moto">
+        <img src="/uploads/IMG3.jpg">
+        <div>
+            <h3>Touring 900cc</h3>
             <p>$180,000 MXN</p>
         </div>
     </div>
+</div>
 </section>
 
 <section>
-    <h2>Comparte tu moto</h2>
-
-    <form action="/upload-image" method="post" enctype="multipart/form-data">
-        <label>
-            Selecciona una imagen (PNG, JPG, WEBP – máx 5MB)
-            <input
-                type="file"
-                name="image"
-                accept="image/png,image/jpeg,image/webp"
-                required>
-        </label>
-
-        <button type="submit">Subir imagen</button>
-
-        <!-- MENSAJE DE ERROR / ÉXITO -->
-        <div id="msg-image" class="msg"></div>
-    </form>
+<h2>Comparte tu Moto</h2>
+<form action="/upload-image" method="post" enctype="multipart/form-data">
+    <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required>
+    <button type="submit">Subir Imagen</button>
+</form>
 </section>
 
 <section>
-    <h2>Motos de nuestros clientes</h2>
-    <div id="gallery" class="catalogo"></div>
+<h2>Motos de la Comunidad</h2>
+<div id="gallery" class="catalogo"></div>
 </section>
 
 <section>
-    <h2>Contáctanos</h2>
-
-    <form action="/enviar" method="post" autocomplete="off">
-        <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre completo"
-            minlength="3"
-            maxlength="50"
-            required>
-
-        <textarea
-            name="mensaje"
-            placeholder="Mensaje o moto de interés"
-            minlength="10"
-            maxlength="500"
-            required></textarea>
-
-        <div class="g-recaptcha"
-             data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
-
-        <button type="submit">Enviar mensaje</button>
-
-        <!-- MENSAJE DE ERROR / ÉXITO -->
-        <div id="msg-form" class="msg"></div>
-    </form>
+<h2>Contáctanos</h2>
+<form action="/enviar" method="post">
+    <input type="text" name="nombre" placeholder="Nombre completo" required>
+    <textarea name="mensaje" placeholder="Mensaje o moto de interés" required></textarea>
+    <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
+    <button type="submit">Enviar</button>
+</form>
 </section>
 
 <footer>
-    <p>© 2026 Axum Motors</p>
+<p>© 2026 Axum Motors — Vive la carretera</p>
 </footer>
 
 <script>
-/* -------- SUBIR IMAGEN -------- */
-document.querySelector("form[action='/upload-image']").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const res = await fetch("/upload-image", {
-        method: "POST",
-        body: new FormData(e.target)
-    });
-
-    document.getElementById("msg-image").innerText = await res.text();
-});
-
-/* -------- ENVIAR MENSAJE -------- */
-document.querySelector("form[action='/enviar']").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const res = await fetch("/enviar", {
-        method: "POST",
-        body: new FormData(e.target)
-    });
-
-    document.getElementById("msg-form").innerText = await res.text();
-});
-
-/* -------- GALERÍA -------- */
 fetch("/images")
-    .then(res => res.json())
-    .then(images => {
-        const gallery = document.getElementById("gallery");
-        images.forEach(src => {
-            const div = document.createElement("div");
-            div.className = "moto";
-            const img = document.createElement("img");
-            img.src = src;
-            img.alt = "Moto de cliente";
-            div.appendChild(img);
-            gallery.appendChild(div);
-        });
+.then(r => r.json())
+.then(images => {
+    const g = document.getElementById("gallery");
+    images.forEach(src => {
+        const card = document.createElement("div");
+        card.className = "moto";
+        card.innerHTML = `<img src="${src}"><div><h3>Moto Axum</h3></div>`;
+        g.appendChild(card);
     });
+});
 </script>
 
 </body>
