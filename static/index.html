@@ -2,201 +2,130 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Axum Motors | Vive la Potencia</title>
+<title>Axum Motors</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Google reCAPTCHA -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <style>
 :root {
-    --primary: #e10600;
-    --dark: #0f0f0f;
-    --light: #f5f5f5;
-    --gray: #1e1e1e;
+    --red: #e10600;
+    --bg: #0f0f0f;
+    --card: #151515;
+    --text: #eaeaea;
 }
 
-* {
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--dark);
-    color: white;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
 }
 
-/* ---------- HEADER ---------- */
+/* HEADER */
 header {
-    background: linear-gradient(90deg, #000, #111);
-    padding: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    background: #000;
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 header h1 {
     margin: 0;
-    color: var(--primary);
-    letter-spacing: 2px;
+    color: var(--red);
+    letter-spacing: 1px;
 }
 
-header p {
-    margin: 5px 0 0;
-    color: #ccc;
-}
-
-/* ---------- HERO ---------- */
+/* HERO */
 .hero {
-    height: 90vh;
     background:
         linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)),
         url("/uploads/hero.jpg") center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 60px 5%;
     text-align: center;
 }
 
 .hero h2 {
-    font-size: 3rem;
-    animation: fadeUp 1s ease;
+    margin: 0;
+    font-size: 2.3rem;
 }
 
-.hero p {
-    color: #ddd;
-    font-size: 1.2rem;
-    animation: fadeUp 1.4s ease;
-}
-
-.hero button {
-    margin-top: 30px;
-    padding: 15px 40px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: transform .3s, box-shadow .3s;
-}
-
-.hero button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(225,6,0,.6);
-}
-
-/* ---------- SECTIONS ---------- */
+/* SECTIONS */
 section {
-    padding: 80px 5%;
-    background: var(--gray);
+    padding: 40px 5%;
 }
 
-section:nth-child(even) {
-    background: var(--dark);
+h2 {
+    margin-bottom: 20px;
+    color: var(--red);
 }
 
-section h2 {
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: 50px;
-}
-
-/* ---------- CARDS ---------- */
+/* CATALOG */
 .catalogo {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
 }
 
 .moto {
-    background: #111;
-    border-radius: 12px;
+    background: var(--card);
+    border-radius: 10px;
     overflow: hidden;
-    transition: transform .4s, box-shadow .4s;
+    transition: transform .3s;
 }
 
 .moto:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,.6);
+    transform: translateY(-5px);
 }
 
 .moto img {
     width: 100%;
-    height: 200px;
+    height: 160px;
     object-fit: cover;
 }
 
 .moto div {
-    padding: 20px;
+    padding: 12px;
 }
 
-.moto h3 {
-    margin: 0;
-}
-
-.moto p {
-    color: #ccc;
-}
-
-/* ---------- FORM ---------- */
+/* FORMS */
 form {
-    max-width: 600px;
-    margin: auto;
+    display: grid;
+    gap: 10px;
+    max-width: 500px;
 }
 
-form input,
-form textarea,
-form button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 15px;
+input, textarea, button {
+    padding: 10px;
     border-radius: 6px;
     border: none;
-    font-size: 1rem;
+    font-size: 14px;
 }
 
-form input,
-form textarea {
+input, textarea {
     background: #000;
     color: white;
     border: 1px solid #333;
 }
 
-form button {
-    background: var(--primary);
+button {
+    background: var(--red);
     color: white;
     cursor: pointer;
-    transition: background .3s;
 }
 
-form button:hover {
-    background: #ff1a1a;
+button:hover {
+    opacity: .9;
 }
 
-/* ---------- GALLERY ---------- */
-#gallery {
-    animation: fadeIn 1s ease;
-}
-
-/* ---------- FOOTER ---------- */
+/* FOOTER */
 footer {
     background: #000;
+    padding: 20px;
     text-align: center;
-    padding: 30px;
     color: #777;
-}
-
-/* ---------- ANIMATIONS ---------- */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 </style>
 </head>
@@ -204,72 +133,58 @@ footer {
 <body>
 
 <header>
-    <h1>AXUM MOTORS</h1>
-    <p>La experiencia sobre dos ruedas</p>
+    <h1>AXUM</h1>
+    <span>Motos premium</span>
 </header>
 
 <div class="hero">
-    <div>
-        <h2>Siente la carretera</h2>
-        <p>Potencia, diseño y libertad absoluta</p>
-        <button onclick="document.getElementById('catalogo').scrollIntoView()">Ver motos</button>
-    </div>
+    <h2>Potencia en cada curva</h2>
+    <p>Diseño, velocidad y libertad</p>
 </div>
 
-<section id="catalogo">
-<h2>Nuestras Motos</h2>
+<section>
+<h2>Catálogo</h2>
 <div class="catalogo">
     <div class="moto">
         <img src="/uploads/IMG1.png">
-        <div>
-            <h3>Deportiva 600cc</h3>
-            <p>$120,000 MXN</p>
-        </div>
+        <div><strong>Deportiva 600cc</strong><br>$120,000 MXN</div>
     </div>
-
     <div class="moto">
         <img src="/uploads/IMG2.jpg">
-        <div>
-            <h3>Naked 750cc</h3>
-            <p>$135,000 MXN</p>
-        </div>
+        <div><strong>Naked 750cc</strong><br>$135,000 MXN</div>
     </div>
-
     <div class="moto">
         <img src="/uploads/IMG3.jpg">
-        <div>
-            <h3>Touring 900cc</h3>
-            <p>$180,000 MXN</p>
-        </div>
+        <div><strong>Touring 900cc</strong><br>$180,000 MXN</div>
     </div>
 </div>
 </section>
 
 <section>
-<h2>Comparte tu Moto</h2>
+<h2>Comparte tu moto</h2>
 <form action="/upload-image" method="post" enctype="multipart/form-data">
     <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required>
-    <button type="submit">Subir Imagen</button>
+    <button>Subir imagen</button>
 </form>
 </section>
 
 <section>
-<h2>Motos de la Comunidad</h2>
+<h2>Motos de la comunidad</h2>
 <div id="gallery" class="catalogo"></div>
 </section>
 
 <section>
-<h2>Contáctanos</h2>
+<h2>Contacto</h2>
 <form action="/enviar" method="post">
-    <input type="text" name="nombre" placeholder="Nombre completo" required>
-    <textarea name="mensaje" placeholder="Mensaje o moto de interés" required></textarea>
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <textarea name="mensaje" placeholder="Mensaje" required></textarea>
     <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
-    <button type="submit">Enviar</button>
+    <button>Enviar</button>
 </form>
 </section>
 
 <footer>
-<p>© 2026 Axum Motors — Vive la carretera</p>
+<p>© 2026 Axum Motors</p>
 </footer>
 
 <script>
@@ -278,10 +193,10 @@ fetch("/images")
 .then(images => {
     const g = document.getElementById("gallery");
     images.forEach(src => {
-        const card = document.createElement("div");
-        card.className = "moto";
-        card.innerHTML = `<img src="${src}"><div><h3>Moto Axum</h3></div>`;
-        g.appendChild(card);
+        const d = document.createElement("div");
+        d.className = "moto";
+        d.innerHTML = `<img src="${src}"><div>Moto Axum</div>`;
+        g.appendChild(d);
     });
 });
 </script>
