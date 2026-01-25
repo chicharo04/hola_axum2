@@ -2,130 +2,148 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Axum Motors</title>
+<title>Axum Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <style>
-:root {
-    --red: #e10600;
-    --bg: #0f0f0f;
-    --card: #151515;
-    --text: #eaeaea;
+:root{
+    --bg:#0b0f14;
+    --panel:#111827;
+    --card:#1f2937;
+    --border:#2a3441;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
 }
 
-* { box-sizing: border-box; }
+*{box-sizing:border-box}
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui, -apple-system, BlinkMacSystemFont;
 }
 
 /* HEADER */
-header {
-    background: #000;
-    padding: 15px 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+header{
+    padding:16px 24px;
+    background:#020617;
+    border-bottom:1px solid var(--border);
+    font-weight:600;
 }
 
-header h1 {
-    margin: 0;
-    color: var(--red);
-    letter-spacing: 1px;
+/* LAYOUT */
+main{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:24px;
+    padding:24px;
+    max-width:1200px;
+    margin:auto;
 }
 
-/* HERO */
-.hero {
-    background:
-        linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)),
-        url("/uploads/hero.jpg") center/cover no-repeat;
-    padding: 60px 5%;
-    text-align: center;
+/* PANELS */
+.panel{
+    background:var(--panel);
+    border-radius:14px;
+    padding:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
 }
 
-.hero h2 {
-    margin: 0;
-    font-size: 2.3rem;
+/* TITLES */
+h2{
+    margin:0 0 6px;
+    font-size:1.3rem;
+}
+p{
+    margin:0 0 16px;
+    color:var(--muted);
+    font-size:.9rem;
 }
 
-/* SECTIONS */
-section {
-    padding: 40px 5%;
+/* FORM */
+label{
+    font-size:.85rem;
+    color:var(--muted);
 }
 
-h2 {
-    margin-bottom: 20px;
-    color: var(--red);
+input, textarea{
+    width:100%;
+    margin-top:6px;
+    padding:10px;
+    border-radius:8px;
+    background:#020617;
+    border:1px solid var(--border);
+    color:white;
 }
 
-/* CATALOG */
-.catalogo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+button{
+    margin-top:14px;
+    width:100%;
+    padding:11px;
+    border:none;
+    border-radius:8px;
+    background:#374151;
+    color:#9ca3af;
+    font-weight:600;
+    cursor:not-allowed;
 }
 
-.moto {
-    background: var(--card);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: transform .3s;
+/* ACTION CARDS */
+.cards{
+    display:grid;
+    gap:12px;
 }
 
-.moto:hover {
-    transform: translateY(-5px);
+.card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:transform .2s, box-shadow .2s;
 }
 
-.moto img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
+.card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,.4);
 }
 
-.moto div {
-    padding: 12px;
+.card strong{
+    display:block;
+}
+.card span{
+    font-size:.85rem;
+    opacity:.85;
 }
 
-/* FORMS */
-form {
-    display: grid;
-    gap: 10px;
-    max-width: 500px;
+/* COLORS */
+.purple{background:#6366f1;}
+.pink{background:#ec4899;}
+.green{background:#10b981;}
+.blue{background:#0ea5e9;}
+.yellow{background:#facc15;color:#000;}
+
+.icon{
+    font-size:1.4rem;
 }
 
-input, textarea, button {
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    font-size: 14px;
+/* ERROR */
+.error{
+    margin-top:16px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #7f1d1d;
+    color:#fecaca;
+    background:#450a0a;
+    text-align:center;
 }
 
-input, textarea {
-    background: #000;
-    color: white;
-    border: 1px solid #333;
-}
-
-button {
-    background: var(--red);
-    color: white;
-    cursor: pointer;
-}
-
-button:hover {
-    opacity: .9;
-}
-
-/* FOOTER */
-footer {
-    background: #000;
-    padding: 20px;
-    text-align: center;
-    color: #777;
+/* RESPONSIVE */
+@media(max-width:900px){
+    main{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -133,73 +151,79 @@ footer {
 <body>
 
 <header>
-    <h1>AXUM</h1>
-    <span>Motos premium</span>
+    🏍️ Axum Motors · Panel
 </header>
 
-<div class="hero">
-    <h2>Potencia en cada curva</h2>
-    <p>Diseño, velocidad y libertad</p>
+<main>
+
+<!-- LEFT -->
+<div class="panel">
+    <h2>Registro Seguro</h2>
+    <p>Ingresa los datos solicitados para continuar</p>
+
+    <label>Dato a insertar *</label>
+    <input type="text" placeholder="Ej: Nombre de usuario">
+
+    <div style="margin:16px 0">
+        <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
+    </div>
+
+    <button disabled>Guardar en Base de Datos</button>
 </div>
 
-<section>
-<h2>Catálogo</h2>
-<div class="catalogo">
-    <div class="moto">
-        <img src="/uploads/IMG1.png">
-        <div><strong>Deportiva 600cc</strong><br>$120,000 MXN</div>
+<!-- RIGHT -->
+<div class="panel">
+    <h2>Explorar Funcionalidades</h2>
+    <p>Pruebas y módulos del sistema</p>
+
+    <div class="cards">
+        <div class="card purple">
+            <div class="icon">🧮</div>
+            <div>
+                <strong>Calculadora</strong>
+                <span>Suma y divide números</span>
+            </div>
+        </div>
+
+        <div class="card pink">
+            <div class="icon">📄</div>
+            <div>
+                <strong>Formulario</strong>
+                <span>Validación de campos</span>
+            </div>
+        </div>
+
+        <div class="card green">
+            <div class="icon">🖼️</div>
+            <div>
+                <strong>Carrusel</strong>
+                <span>Galería dinámica</span>
+            </div>
+        </div>
+
+        <div class="card blue">
+            <div class="icon">🚀</div>
+            <div>
+                <strong>Hola Mundo</strong>
+                <span>Página de bienvenida</span>
+            </div>
+        </div>
+
+        <div class="card yellow">
+            <div class="icon">📸</div>
+            <div>
+                <strong>Galería</strong>
+                <span>Subida de imágenes real</span>
+            </div>
+        </div>
     </div>
-    <div class="moto">
-        <img src="/uploads/IMG2.jpg">
-        <div><strong>Naked 750cc</strong><br>$135,000 MXN</div>
-    </div>
-    <div class="moto">
-        <img src="/uploads/IMG3.jpg">
-        <div><strong>Touring 900cc</strong><br>$180,000 MXN</div>
+
+    <div class="error">
+        ⚠ Mostrar pantalla de error
     </div>
 </div>
-</section>
 
-<section>
-<h2>Comparte tu moto</h2>
-<form action="/upload-image" method="post" enctype="multipart/form-data">
-    <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required>
-    <button>Subir imagen</button>
-</form>
-</section>
-
-<section>
-<h2>Motos de la comunidad</h2>
-<div id="gallery" class="catalogo"></div>
-</section>
-
-<section>
-<h2>Contacto</h2>
-<form action="/enviar" method="post">
-    <input type="text" name="nombre" placeholder="Nombre" required>
-    <textarea name="mensaje" placeholder="Mensaje" required></textarea>
-    <div class="g-recaptcha" data-sitekey="6Lf0A00sAAAAALUJlTs6O9l1a93nyfUyvs-yBQlQ"></div>
-    <button>Enviar</button>
-</form>
-</section>
-
-<footer>
-<p>© 2026 Axum Motors</p>
-</footer>
-
-<script>
-fetch("/images")
-.then(r => r.json())
-.then(images => {
-    const g = document.getElementById("gallery");
-    images.forEach(src => {
-        const d = document.createElement("div");
-        d.className = "moto";
-        d.innerHTML = `<img src="${src}"><div>Moto Axum</div>`;
-        g.appendChild(d);
-    });
-});
-</script>
+</main>
 
 </body>
 </html>
