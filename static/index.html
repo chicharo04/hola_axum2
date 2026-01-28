@@ -211,13 +211,20 @@ document.querySelector("form[action='/upload-image']").addEventListener("submit"
 document.querySelector("form[action='/enviar']").addEventListener("submit", async e => {
     e.preventDefault();
 
+    const form = e.target;
+    const data = new URLSearchParams(new FormData(form));
+
     const res = await fetch("/enviar", {
         method: "POST",
-        body: new FormData(e.target)
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: data
     });
 
     document.getElementById("msg-form").innerText = await res.text();
 });
+
 
 /* -------- GALERÍA -------- */
 fetch("/images")
