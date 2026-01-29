@@ -112,6 +112,26 @@
     <p>Encuentra la moto perfecta para ti</p>
 </div>
 
+<!-- ====== BOTONES AGREGADOS ====== -->
+<section>
+    <h2>Explorar categorías</h2>
+
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <a href="/motos-ano.html">
+            <button style="padding: 15px 30px; font-size: 18px; cursor: pointer;">
+                Motos del Año
+            </button>
+        </a>
+
+        <a href="/otros.html">
+            <button style="padding: 15px 30px; font-size: 18px; cursor: pointer;">
+                Scooters, Bicicletas y Cuatrimoto
+            </button>
+        </a>
+    </div>
+</section>
+<!-- ====== FIN BOTONES ====== -->
+
 <section>
     <h2>Catálogo de Motos</h2>
 
@@ -234,8 +254,6 @@ document.querySelector("form[action='/enviar']").addEventListener("submit", asyn
         }, 800); // pequeño delay para que vea el mensaje
     }
 });
-
-
 
 /* -------- GALERÍA -------- */
 fetch("/images")
