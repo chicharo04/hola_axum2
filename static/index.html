@@ -222,8 +222,19 @@ document.querySelector("form[action='/enviar']").addEventListener("submit", asyn
         body: data
     });
 
-    document.getElementById("msg-form").innerText = await res.text();
+    const text = await res.text();
+
+    // Mostrar mensaje
+    document.getElementById("msg-form").innerText = text;
+
+    // ✅ Si fue exitoso, redirigir
+    if (text.includes("✅")) {
+        setTimeout(() => {
+            window.location.href = "/gracias.html";
+        }, 800); // pequeño delay para que vea el mensaje
+    }
 });
+
 
 
 /* -------- GALERÍA -------- */
